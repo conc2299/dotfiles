@@ -132,27 +132,63 @@ get_required_package_name(){
 }
 
 # version compare using SemVer rules
-compare_semver(){
-	local version_a="$1"
-	local version_b="$2"
-	# split version into array
-	IFS='.' read -r -a ver_a_parts <<< "$version_a"
-	IFS='.' read -r -a ver_b_parts <<< "$version_b"
-	local len_a=${#ver_a_parts[@]}
-	local len_b=${#ver_b_parts[@]}
-	local max_len=$(( len_a > len_b ? len_a : len_b ))
-	for (( i=0; i<max_len; i++ )); do
-		local part_a=${ver_a_parts[i]:-0}
-		local part_b=${ver_b_parts[i]:-0}
-		if (( part_a < part_b )); then
-			echo -1
-			return
-		elif (( part_a > part_b )); then
-			echo 1
-			return
+compare_semver() {
+	version_a=$1
+	version_b=$2
+
+	# 把数字字符串的前导 0 去掉（结果至少为 "0"）
+	strip_leading_zeros() {
+		n=$1
+		case "$n" in
+			'' ) printf '0' ;;
+			*[!0-9]* ) printf '0' ;; # 非数字 -> 当作 0
+			* )
+			# 删除所有前导零
+				while [ "${n#0}" != "$n" ] && [ -n "$n" ]; do
+					n=${n#0}
+				done
+				printf '%s' "${n:-0}"
+				;;
+		esac
+	}
+
+	while [ -n "$version_a" ] || [ -n "$version_b" ]; do
+	# 提取 version_a 的当前段（直到第一个 '.' 或到末尾）
+		if [ -z "$version_a" ]; then
+			part_a=0
+		else
+			case "$version_a" in
+				*.*) part_a=${version_a%%.*}; version_a=${version_a#*.} ;;
+				*)   part_a=$version_a; version_a='' ;;
+			esac
 		fi
+
+		# 提取 version_b 的当前段
+		if [ -z "$version_b" ]; then
+			part_b=0
+		else
+			case "$version_b" in
+				*.*) part_b=${version_b%%.*}; version_b=${version_b#*.} ;;
+				*)   part_b=$version_b; version_b='' ;;
+			esac
+		fi
+
+		# 规范化为非负整数字符串（去掉前导零，非数字视为 0）
+		a=$(strip_leading_zeros "$part_a")
+		b=$(strip_leading_zeros "$part_b")
+
+		# 数值比较（POSIX test 支持 -lt -gt）
+		if [ "$a" -lt "$b" ]; then
+			echo -1
+			return 0
+		elif [ "$a" -gt "$b" ]; then
+			echo 1
+			return 0
+		fi
+		# 相等 -> 继续下一段
 	done
 	echo 0
+	return 0
 }
 
 check_version_meet_requirement(){
