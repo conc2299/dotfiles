@@ -1,2 +1,3 @@
-name	version		link																				ubuntu	arch
-v2ray	>=5.37.0	https://github.com/v2fly/v2ray-core/releases/download/v5.42.0/v2ray-linux-64.zip	v2ray	v2ray
+name	    version		link																				Ubuntu	    Arch_Linux
+v2ray	    >=5.37.0	https://github.com/v2fly/v2ray-core/releases/download/v5.42.0/v2ray-linux-64.zip	v2ray	    v2ray
+coreutils	<=10.37.0	/	                                                                                coreutils	coreutils
