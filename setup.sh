@@ -13,14 +13,30 @@ get_distro(){
 	echo $(grep '^NAME=' /etc/os-release | cut -d'=' -f2 | tr -d '"')
 }
 
-get_package_manager(){
-	local distro=$(get_distro)
+# get_package_manager(){
+# 	local distro=$(get_distro)
+# 	case "$distro" in
+# 		"Ubuntu" | "Debian")
+# 			echo apt-get
+# 		;;
+# 		"Arch Linux")
+# 			echo pacman
+# 		;;
+# 		*)
+# 			echo "Not support distro: $distro" >&2
+# 			exit 1
+# 		;;
+# 	esac
+# }
+
+distro_update_prefix(){
+	local distro="$1"
 	case "$distro" in
 		"Ubuntu" | "Debian")
-			echo apt-get
+			echo "apt-get update"
 		;;
 		"Arch Linux")
-			echo pacman
+			echo "pacman -Sy"
 		;;
 		*)
 			echo "Not support distro: $distro" >&2
@@ -29,49 +45,33 @@ get_package_manager(){
 	esac
 }
 
-pm_update_flags(){
-	local pm="$1"
-	case "$pm" in
-		apt-get)
-			echo "update"
+distro_install_prefix(){
+	local distro="$1"
+	case "$distro" in
+		"Ubuntu" | "Debian")
+			echo "apt-get install -y"
 		;;
-		pacman)
-			echo "-Sy"
+		"Arch Linux")
+			echo "pacman -S --noconfirm"
 		;;
 		*)
-			echo "Not support package manager: $pm" >&2
+			echo "Not support distro: $distro" >&2
 			exit 1
 		;;
 	esac
 }
 
-pm_install_flags(){
-	local pm="$1"
-	case "$pm" in
-		apt-get)
-			echo "install -y"
+distro_info_prefix(){
+	local distro="$1"
+	case "$distro" in
+		"Ubuntu" | "Debian")
+			echo "apt-cache show"
 		;;
-		pacman)
-			echo "-S --noconfirm"
-		;;
-		*)
-			echo "Not support package manager: $pm" >&2
-			exit 1
-		;;
-	esac
-}
-
-pm_info_flags(){
-	local pm="$1"
-	case "$pm" in
-		apt)
-			echo "show"
-		;;
-		pacman)
-			echo "-Si"
+		"Arch Linux")
+			echo "pacman -Si"
 		;;
 		*)
-			echo "Not support package manager: $pm" >&2
+			echo "Not support distro: $distro" >&2
 			exit 1
 		;;
 	esac
@@ -79,14 +79,16 @@ pm_info_flags(){
  
 get_version(){
 	local software="$1"
-	local pm=$(get_package_manager)
-	local info_flags=$(pm_info_flags $pm)
-	case "$pm" in
+	local distro=$(get_distro)
+	local info_prefix=$(distro_info_prefix "$distro")
+	case "$distro" in
 		*)
-			echo $($pm $info_flags $software | grep Version | cut -d':' -f2 | tr -d ' ')
+			echo $($info_prefix $software | grep Version | cut -d':' -f2 | tr -d ' ')
 		;;
 	esac
 }
+
+
 
 # proxy
 select_proxy_software(){
