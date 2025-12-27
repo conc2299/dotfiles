@@ -1,2 +1,2 @@
-source /home/lyk/.local/bin/mihomo-tui/setup.sh
-source /home/lyk/.local/bin/mihomo/setup.sh
+source $HOME/.local/bin/mihomo-tui/setup.sh
+source $HOME/.local/bin/mihomo/setup.sh
